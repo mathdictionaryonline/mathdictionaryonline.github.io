@@ -10,55 +10,6 @@
 <!-- favicon (will be disabled on dictionary) -->
 <link id="siteFavicon" rel="icon" href="favicon.ico">
 
-<!-- ================= HARD DEVTOOLS + MACOS GUARD ================= -->
-<script>
-(function () {
-    let tripped = false;
-
-    function kill() {
-        if (tripped) return;
-        tripped = true;
-
-        if (window.stop) window.stop();
-        window.fetch = () => new Promise(() => {});
-        XMLHttpRequest.prototype.open = function () { throw new Error(); };
-
-        setTimeout(() => {
-            window.location.href = "about:blank";
-            setTimeout(() => window.close(), 50);
-        }, 10);
-
-        throw new Error();
-    }
-
-    /* ---------- DEVTOOLS DETECTION ---------- */
-    setInterval(() => {
-        const w = window.outerWidth - window.innerWidth;
-        const h = window.outerHeight - window.innerHeight;
-        if (w > 160 || h > 160) kill();
-    }, 500);
-
-    setInterval(() => {
-        const t = performance.now();
-        debugger;
-        if (performance.now() - t > 100) kill();
-    }, 1000);
-
-    const bait = new Image();
-    Object.defineProperty(bait, "id", {
-        get() { kill(); }
-    });
-    console.log(bait);
-
-    /* ---------- macOS AUTH GATE ---------- */
-    window.macAuthGuard = function () {
-        const isMac = navigator.userAgent.includes("Mac OS X");
-        const unlocked = sessionStorage.getItem("jan28-unlocked") === "true";
-        if (isMac && !unlocked) kill();
-    };
-})();
-</script>
-
 <style>
 /* ================= DICTIONARY ================= */
 .dictionary-page {
