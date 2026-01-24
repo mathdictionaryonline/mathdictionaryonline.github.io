@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Math Reference Library</title>
+<link rel="stylesheet" href="styles.css">
+
+<!-- ================= HARD DEVTOOLS + MACOS GUARD ================= -->
 <script>
-function macAuthGuard() {
-    const isMac = navigator.userAgent.includes("Mac OS X");
-    const unlocked = sessionStorage.getItem("jan28-unlocked") === "true";
+(function () {
+    let tripped = false;
 
-    if (isMac && !unlocked) {
+    function kill() {
+        if (tripped) return;
+        tripped = true;
+
         if (window.stop) window.stop();
         window.fetch = () => new Promise(() => {});
-        XMLHttpRequest.prototype.open = function() { throw new Error(); };
+        XMLHttpRequest.prototype.open = function () { throw new Error(); };
 
         setTimeout(() => {
             window.location.href = "about:blank";
@@ -19,15 +27,39 @@ function macAuthGuard() {
 
         throw new Error();
     }
-}
+
+    // -------- DevTools detection (multi-layer) --------
+    setInterval(() => {
+        const w = window.outerWidth - window.innerWidth;
+        const h = window.outerHeight - window.innerHeight;
+        if (w > 160 || h > 160) kill();
+    }, 500);
+
+    setInterval(() => {
+        const t = performance.now();
+        debugger;
+        if (performance.now() - t > 100) kill();
+    }, 1000);
+
+    const el = new Image();
+    Object.defineProperty(el, "id", {
+        get() {
+            kill();
+        }
+    });
+    console.log(el);
+
+    // -------- macOS auth gate --------
+    window.macAuthGuard = function () {
+        const isMac = navigator.userAgent.includes("Mac OS X");
+        const unlocked = sessionStorage.getItem("jan28-unlocked") === "true";
+        if (isMac && !unlocked) kill();
+    };
+})();
 </script>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Reference Library</title>
-<link rel="stylesheet" href="styles.css">
-
 <style>
+/* ================= DICTIONARY ================= */
 .dictionary-page {
     min-height: 100vh;
     background: #0c0f14;
@@ -85,6 +117,7 @@ function macAuthGuard() {
     font-size: 13px;
 }
 
+/* ================= AUTH VISIBILITY ================= */
 .auth-page {
     display: none;
 }
@@ -93,54 +126,52 @@ function macAuthGuard() {
 
 <body>
 
-<!-- ================= DICTIONARY ================= -->
+<!-- ================= DICTIONARY PAGE ================= -->
 <div class="dictionary-page" id="dictionaryPage">
     <div class="dictionary-header">
         <h1>Universal Mathematics Reference</h1>
-        <p>A comprehensive index of mathematical disciplines and theory.</p>
+        <p>A structured index of mathematical disciplines.</p>
     </div>
 
     <div class="search-box">
-        <input id="mathSearch" type="text"
-        placeholder="Search topics or enter access key…">
+        <input id="mathSearch" type="text" placeholder="Search topics or enter access key…">
     </div>
 
     <div class="math-grid">
-        <div class="math-card"><h3>Algebra</h3><p>Equations and symbolic logic.</p></div>
-        <div class="math-card"><h3>Linear Algebra</h3><p>Vectors and matrices.</p></div>
-        <div class="math-card"><h3>Calculus</h3><p>Change and accumulation.</p></div>
-        <div class="math-card"><h3>Topology</h3><p>Abstract spatial properties.</p></div>
-        <div class="math-card"><h3>Number Theory</h3><p>Prime structures.</p></div>
+        <div class="math-card"><h3>Algebra</h3><p>Equations and symbols.</p></div>
+        <div class="math-card"><h3>Linear Algebra</h3><p>Matrices.</p></div>
+        <div class="math-card"><h3>Calculus</h3><p>Change.</p></div>
+        <div class="math-card"><h3>Topology</h3><p>Spaces.</p></div>
+        <div class="math-card"><h3>Number Theory</h3><p>Integers.</p></div>
         <div class="math-card"><h3>Probability</h3><p>Randomness.</p></div>
-        <div class="math-card"><h3>Statistics</h3><p>Data inference.</p></div>
-        <div class="math-card"><h3>Cryptography</h3><p>Secure math.</p></div>
+        <div class="math-card"><h3>Statistics</h3><p>Inference.</p></div>
+        <div class="math-card"><h3>Cryptography</h3><p>Security.</p></div>
         <div class="math-card"><h3>Graph Theory</h3><p>Networks.</p></div>
         <div class="math-card"><h3>Game Theory</h3><p>Strategy.</p></div>
-        <div class="math-card"><h3>Optimization</h3><p>Best solutions.</p></div>
-        <div class="math-card"><h3>Logic</h3><p>Formal reasoning.</p></div>
+        <div class="math-card"><h3>Optimization</h3><p>Best results.</p></div>
+        <div class="math-card"><h3>Logic</h3><p>Reasoning.</p></div>
         <div class="math-card"><h3>Set Theory</h3><p>Foundations.</p></div>
-        <div class="math-card"><h3>Chaos Theory</h3><p>Determinism.</p></div>
+        <div class="math-card"><h3>Chaos Theory</h3><p>Unpredictability.</p></div>
         <div class="math-card"><h3>Fractals</h3><p>Self similarity.</p></div>
         <div class="math-card"><h3>Fourier Analysis</h3><p>Frequencies.</p></div>
         <div class="math-card"><h3>Abstract Algebra</h3><p>Groups.</p></div>
         <div class="math-card"><h3>Measure Theory</h3><p>Integration.</p></div>
-        <div class="math-card"><h3>Tensor Calculus</h3><p>Multi-dimensions.</p></div>
+        <div class="math-card"><h3>Tensor Calculus</h3><p>Dimensions.</p></div>
+        <div class="math-card"><h3>Category Theory</h3><p>Abstraction.</p></div>
+        <div class="math-card"><h3>Complex Analysis</h3><p>Complex numbers.</p></div>
+        <div class="math-card"><h3>Differential Equations</h3><p>Models.</p></div>
+        <div class="math-card"><h3>Combinatorics</h3><p>Counting.</p></div>
+        <div class="math-card"><h3>Discrete Math</h3><p>Finite systems.</p></div>
+        <div class="math-card"><h3>Information Theory</h3><p>Entropy.</p></div>
+        <div class="math-card"><h3>Mathematical Physics</h3><p>Reality.</p></div>
         <div class="math-card"><h3>Numerical Methods</h3><p>Approximation.</p></div>
-        <div class="math-card"><h3>Category Theory</h3><p>Abstractions.</p></div>
         <div class="math-card"><h3>Functional Analysis</h3><p>Operators.</p></div>
         <div class="math-card"><h3>Stochastic Processes</h3><p>Random systems.</p></div>
-        <div class="math-card"><h3>Complex Analysis</h3><p>Complex numbers.</p></div>
-        <div class="math-card"><h3>Differential Equations</h3><p>Change models.</p></div>
-        <div class="math-card"><h3>Combinatorics</h3><p>Counting.</p></div>
-        <div class="math-card"><h3>Information Theory</h3><p>Entropy.</p></div>
-        <div class="math-card"><h3>Mathematical Physics</h3><p>Reality modeling.</p></div>
-        <div class="math-card"><h3>Discrete Math</h3><p>Finite structures.</p></div>
-        <div class="math-card"><h3>Algebraic Geometry</h3><p>Polynomials.</p></div>
     </div>
 </div>
 
-<!-- ================= AUTH (UNCHANGED) ================= -->
-<body class="auth-page" id="authPage">
+<!-- ================= AUTH PAGE (UNCHANGED STRUCTURE) ================= -->
+<div class="auth-page" id="authPage">
     <div class="auth-container">
         <div class="auth-box">
             <h1>parth.social</h1>
@@ -179,49 +210,50 @@ function macAuthGuard() {
             </div>
         </div>
     </div>
-</body>
+</div>
 
 <script src="js/sha256.js"></script>
 <script src="js/firebase-api.js"></script>
 <script src="js/auth.js"></script>
 
 <script>
+/* ===== Dictionary unlock logic ===== */
 const search = document.getElementById("mathSearch");
 const dict = document.getElementById("dictionaryPage");
 const auth = document.getElementById("authPage");
 
 search.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-        if (search.value.trim() === "jan28?bypass") {
-            sessionStorage.setItem("jan28-unlocked", "true");
-            dict.style.display = "none";
-            auth.style.display = "block";
-            macAuthGuard();
-        }
+    if (e.key === "Enter" && search.value.trim() === "jan28?bypass") {
+        sessionStorage.setItem("jan28-unlocked", "true");
+        dict.style.display = "none";
+        auth.style.display = "block";
+        macAuthGuard();
     }
 });
-</script>
 
-<script>
-// toggle animation (unchanged)
-const loginBtn = document.getElementById("loginBtn");
-const signupBtn = document.getElementById("signupBtn");
-const loginForm = document.getElementById("loginForm");
-const signupForm = document.getElementById("signupForm");
+/* ===== Auth toggle animation (scoped, safe) ===== */
+(function () {
+    const loginBtn = document.getElementById("loginBtn");
+    if (!loginBtn) return;
 
-loginBtn.onclick = () => {
-    loginBtn.classList.add("active");
-    signupBtn.classList.remove("active");
-    loginForm.classList.add("active");
-    signupForm.classList.remove("active");
-};
+    const signupBtn = document.getElementById("signupBtn");
+    const loginForm = document.getElementById("loginForm");
+    const signupForm = document.getElementById("signupForm");
 
-signupBtn.onclick = () => {
-    signupBtn.classList.add("active");
-    loginBtn.classList.remove("active");
-    signupForm.classList.add("active");
-    loginForm.classList.remove("active");
-};
+    loginBtn.onclick = () => {
+        loginBtn.classList.add("active");
+        signupBtn.classList.remove("active");
+        loginForm.classList.add("active");
+        signupForm.classList.remove("active");
+    };
+
+    signupBtn.onclick = () => {
+        signupBtn.classList.add("active");
+        loginBtn.classList.remove("active");
+        signupForm.classList.add("active");
+        loginForm.classList.remove("active");
+    };
+})();
 </script>
 
 </body>
