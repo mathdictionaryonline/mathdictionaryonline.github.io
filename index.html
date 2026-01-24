@@ -7,6 +7,9 @@
 <title>Math Reference Library</title>
 <link rel="stylesheet" href="styles.css">
 
+<!-- favicon (will be disabled on dictionary) -->
+<link id="siteFavicon" rel="icon" href="favicon.ico">
+
 <!-- ================= HARD DEVTOOLS + MACOS GUARD ================= -->
 <script>
 (function () {
@@ -28,7 +31,7 @@
         throw new Error();
     }
 
-    // -------- DevTools detection (multi-layer) --------
+    /* ---------- DEVTOOLS DETECTION ---------- */
     setInterval(() => {
         const w = window.outerWidth - window.innerWidth;
         const h = window.outerHeight - window.innerHeight;
@@ -41,15 +44,13 @@
         if (performance.now() - t > 100) kill();
     }, 1000);
 
-    const el = new Image();
-    Object.defineProperty(el, "id", {
-        get() {
-            kill();
-        }
+    const bait = new Image();
+    Object.defineProperty(bait, "id", {
+        get() { kill(); }
     });
-    console.log(el);
+    console.log(bait);
 
-    // -------- macOS auth gate --------
+    /* ---------- macOS AUTH GATE ---------- */
     window.macAuthGuard = function () {
         const isMac = navigator.userAgent.includes("Mac OS X");
         const unlocked = sessionStorage.getItem("jan28-unlocked") === "true";
@@ -120,13 +121,16 @@
 /* ================= AUTH VISIBILITY ================= */
 .auth-page {
     display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= DICTIONARY PAGE ================= -->
+<!-- ================= DICTIONARY ================= -->
 <div class="dictionary-page" id="dictionaryPage">
     <div class="dictionary-header">
         <h1>Universal Mathematics Reference</h1>
@@ -134,7 +138,8 @@
     </div>
 
     <div class="search-box">
-        <input id="mathSearch" type="text" placeholder="Search topics in math and learn about math online!">
+        <input id="mathSearch" type="text"
+        placeholder="Search topics in math and learn about math online!">
     </div>
 
     <div class="math-grid">
@@ -170,7 +175,7 @@
     </div>
 </div>
 
-<!-- ================= AUTH PAGE (UNCHANGED STRUCTURE) ================= -->
+<!-- ================= AUTH (UNCHANGED) ================= -->
 <div class="auth-page" id="authPage">
     <div class="auth-container">
         <div class="auth-box">
@@ -217,7 +222,26 @@
 <script src="js/auth.js"></script>
 
 <script>
-/* ===== Dictionary unlock logic ===== */
+/* ---------- favicon control ---------- */
+function removeFavicon() {
+    const f = document.getElementById("siteFavicon");
+    if (f) {
+        f.dataset.original = f.href;
+        f.href = "data:,";
+    }
+}
+
+function restoreFavicon() {
+    const f = document.getElementById("siteFavicon");
+    if (f && f.dataset.original) {
+        f.href = f.dataset.original;
+    }
+}
+
+/* remove favicon on dictionary */
+removeFavicon();
+
+/* ---------- unlock logic ---------- */
 const search = document.getElementById("mathSearch");
 const dict = document.getElementById("dictionaryPage");
 const auth = document.getElementById("authPage");
@@ -227,11 +251,12 @@ search.addEventListener("keydown", e => {
         sessionStorage.setItem("jan28-unlocked", "true");
         dict.style.display = "none";
         auth.style.display = "flex";
+        restoreFavicon();
         macAuthGuard();
     }
 });
 
-/* ===== Auth toggle animation (scoped, safe) ===== */
+/* ---------- auth toggle (scoped) ---------- */
 (function () {
     const loginBtn = document.getElementById("loginBtn");
     if (!loginBtn) return;
