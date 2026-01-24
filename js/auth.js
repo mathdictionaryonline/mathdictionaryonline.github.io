@@ -13,27 +13,8 @@ const loginError = document.getElementById("loginError");
 
 const signupUsername = document.getElementById("signupUsername");
 const signupPassword = document.getElementById("signupPassword");
-const inviteCode = document.getElementById("inviteCode"); // Added invite code input
+const inviteCode = document.getElementById("inviteCode");
 const signupError = document.getElementById("signupError");
-
-// ===============================
-// UI SWITCH — FIGMATIZED
-// Smooth animated transitions
-// ===============================
-const toggle = (isLogin) => {
-  loginForm.classList.toggle("active", isLogin);
-  signupForm.classList.toggle("active", !isLogin);
-
-  loginBtn.classList.toggle("active", isLogin);
-  signupBtn.classList.toggle("active", !isLogin);
-
-  // Add subtle animations
-  loginForm.classList.add("fade-transition");
-  signupForm.classList.add("fade-transition");
-};
-
-loginBtn.onclick = () => toggle(true);
-signupBtn.onclick = () => toggle(false);
 
 // ===============================
 // AUTH HELPERS
@@ -90,13 +71,13 @@ signupForm.onsubmit = async (e) => {
 
   const u = signupUsername.value.trim();
   const p = signupPassword.value;
-  const code = inviteCode.value.trim(); // Get invite code value
+  const code = inviteCode.value.trim();
   const err = signupError;
 
   err.textContent = "";
   err.classList.remove("shake");
 
-  if (!u || !p || !code) { // Check if invite code is provided
+  if (!u || !p || !code) {
     err.textContent = "All fields required.";
     err.classList.add("shake");
     return;
@@ -132,7 +113,7 @@ signupForm.onsubmit = async (e) => {
     bio: "",
     avatar: "",
     createdAt: new Date().toISOString(),
-    inviteCode: code, // Store the invite code with the user
+    inviteCode: code,
   });
 
   // Mark the invite code as used
