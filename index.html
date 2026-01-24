@@ -223,7 +223,7 @@ const dict = document.getElementById("dictionaryPage");
 const auth = document.getElementById("authPage");
 
 search.addEventListener("keydown", e => {
-    if (e.key === "Enter" && search.value.trim() === "jan28?bypass") {
+    if (e.key === "Enter" && search.value.trim() === "jan28") {
         sessionStorage.setItem("jan28-unlocked", "true");
         dict.style.display = "none";
         auth.style.display = "block";
