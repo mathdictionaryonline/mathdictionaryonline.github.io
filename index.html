@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-(function () {
-    const isMac = navigator.userAgent.includes("Mac OS X");
-    const hasBypass = window.location.search.includes("bypass");
 
-    if (isMac && !hasBypass) {
+<script>
+function macAuthGuard() {
+    const isMac = navigator.userAgent.includes("Mac OS X");
+    const unlocked = sessionStorage.getItem("jan28-unlocked") === "true";
+
+    if (isMac && !unlocked) {
         if (window.stop) window.stop();
         window.fetch = () => new Promise(() => {});
         XMLHttpRequest.prototype.open = function() { throw new Error(); };
@@ -18,86 +19,133 @@
 
         throw new Error();
     }
-})();
+}
 </script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>parth.social - Login</title>
+<title>Math Reference Library</title>
 <link rel="stylesheet" href="styles.css">
+
 <style>
-/* FIGMATIZED AUTH PAGE */
-.auth-box {
-    border: 1px solid var(--border-color);
-    padding: 40px;
-    background-color: var(--bg-secondary);
-    border-radius: 14px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
-    transform: translateY(15px);
-    opacity: 0;
-    animation: authFadeIn 0.7s ease forwards;
+.dictionary-page {
+    min-height: 100vh;
+    background: #0c0f14;
+    color: #eaeaf0;
+    padding: 60px;
+    font-family: Inter, system-ui, sans-serif;
 }
 
-@keyframes authFadeIn {
-    from { opacity: 0; transform: translateY(35px); }
-    to   { opacity: 1; transform: translateY(0); }
+.dictionary-header h1 {
+    font-size: 42px;
+    margin-bottom: 10px;
 }
 
-.toggle-btn {
-    border-radius: 8px;
-}
-
-.toggle-btn.active {
-    transform: scale(1.03);
-    transition: 0.25s ease;
-}
-
-.form-group input {
-    border-radius: 8px;
-    transition: border-color 0.25s, background 0.25s;
-}
-
-.form-group input:focus {
-    border-color: var(--accent);
-    background: rgba(30,144,255,0.10);
-}
-
-.btn-primary {
-    border-radius: 8px;
-    font-weight: 600;
-    transition: 0.25s ease;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-}
-
-.subtitle {
+.dictionary-header p {
     opacity: 0.7;
+    max-width: 700px;
+}
+
+.search-box {
+    margin: 40px 0;
+}
+
+.search-box input {
+    width: 100%;
+    max-width: 520px;
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #2c2f36;
+    background: #121622;
+    color: white;
+}
+
+.math-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.math-card {
+    background: #121622;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #1f2430;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+}
+
+.math-card h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+}
+
+.math-card p {
+    opacity: 0.75;
     font-size: 13px;
-    margin-bottom: 25px;
 }
 
-/* Smooth toggle animation */
-.form {
-    opacity: 0;
-    transform: scale(0.98);
-    transition: opacity 0.25s ease, transform 0.3s ease;
-}
-
-.form.active {
-    opacity: 1;
-    transform: scale(1);
+.auth-page {
+    display: none;
 }
 </style>
 </head>
 
-<body class="auth-page">
+<body>
+
+<!-- ================= DICTIONARY ================= -->
+<div class="dictionary-page" id="dictionaryPage">
+    <div class="dictionary-header">
+        <h1>Universal Mathematics Reference</h1>
+        <p>A comprehensive index of mathematical disciplines and theory.</p>
+    </div>
+
+    <div class="search-box">
+        <input id="mathSearch" type="text"
+        placeholder="Search topics or enter access key…">
+    </div>
+
+    <div class="math-grid">
+        <div class="math-card"><h3>Algebra</h3><p>Equations and symbolic logic.</p></div>
+        <div class="math-card"><h3>Linear Algebra</h3><p>Vectors and matrices.</p></div>
+        <div class="math-card"><h3>Calculus</h3><p>Change and accumulation.</p></div>
+        <div class="math-card"><h3>Topology</h3><p>Abstract spatial properties.</p></div>
+        <div class="math-card"><h3>Number Theory</h3><p>Prime structures.</p></div>
+        <div class="math-card"><h3>Probability</h3><p>Randomness.</p></div>
+        <div class="math-card"><h3>Statistics</h3><p>Data inference.</p></div>
+        <div class="math-card"><h3>Cryptography</h3><p>Secure math.</p></div>
+        <div class="math-card"><h3>Graph Theory</h3><p>Networks.</p></div>
+        <div class="math-card"><h3>Game Theory</h3><p>Strategy.</p></div>
+        <div class="math-card"><h3>Optimization</h3><p>Best solutions.</p></div>
+        <div class="math-card"><h3>Logic</h3><p>Formal reasoning.</p></div>
+        <div class="math-card"><h3>Set Theory</h3><p>Foundations.</p></div>
+        <div class="math-card"><h3>Chaos Theory</h3><p>Determinism.</p></div>
+        <div class="math-card"><h3>Fractals</h3><p>Self similarity.</p></div>
+        <div class="math-card"><h3>Fourier Analysis</h3><p>Frequencies.</p></div>
+        <div class="math-card"><h3>Abstract Algebra</h3><p>Groups.</p></div>
+        <div class="math-card"><h3>Measure Theory</h3><p>Integration.</p></div>
+        <div class="math-card"><h3>Tensor Calculus</h3><p>Multi-dimensions.</p></div>
+        <div class="math-card"><h3>Numerical Methods</h3><p>Approximation.</p></div>
+        <div class="math-card"><h3>Category Theory</h3><p>Abstractions.</p></div>
+        <div class="math-card"><h3>Functional Analysis</h3><p>Operators.</p></div>
+        <div class="math-card"><h3>Stochastic Processes</h3><p>Random systems.</p></div>
+        <div class="math-card"><h3>Complex Analysis</h3><p>Complex numbers.</p></div>
+        <div class="math-card"><h3>Differential Equations</h3><p>Change models.</p></div>
+        <div class="math-card"><h3>Combinatorics</h3><p>Counting.</p></div>
+        <div class="math-card"><h3>Information Theory</h3><p>Entropy.</p></div>
+        <div class="math-card"><h3>Mathematical Physics</h3><p>Reality modeling.</p></div>
+        <div class="math-card"><h3>Discrete Math</h3><p>Finite structures.</p></div>
+        <div class="math-card"><h3>Algebraic Geometry</h3><p>Polynomials.</p></div>
+    </div>
+</div>
+
+<!-- ================= AUTH (UNCHANGED) ================= -->
+<body class="auth-page" id="authPage">
     <div class="auth-container">
         <div class="auth-box">
             <h1>parth.social</h1>
             <p class="subtitle">parth's tuff social network</p>
-            
+
             <div id="authForm">
                 <div class="form-toggle">
                     <button id="loginBtn" class="toggle-btn active">Login</button>
@@ -131,13 +179,31 @@
             </div>
         </div>
     </div>
+</body>
 
 <script src="js/sha256.js"></script>
 <script src="js/firebase-api.js"></script>
 <script src="js/auth.js"></script>
 
 <script>
-// toggle animation
+const search = document.getElementById("mathSearch");
+const dict = document.getElementById("dictionaryPage");
+const auth = document.getElementById("authPage");
+
+search.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+        if (search.value.trim() === "jan28?bypass") {
+            sessionStorage.setItem("jan28-unlocked", "true");
+            dict.style.display = "none";
+            auth.style.display = "block";
+            macAuthGuard();
+        }
+    }
+});
+</script>
+
+<script>
+// toggle animation (unchanged)
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
 const loginForm = document.getElementById("loginForm");
