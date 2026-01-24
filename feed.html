@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Feed - parth.social</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+/* ---------- FIGMATIZED FEED UI ---------- */
+
+/* Sidebar slide-in - only on initial load */
+.sidebar.init-animation {
+  transform: translateX(-10px);
+  opacity: 0;
+  animation: slideIn 0.45s ease forwards;
+}
+@keyframes slideIn {
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Smooth content fade - only on initial load */
+.content.init-animation {
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards 0.15s;
+}
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* Compose box - only on initial load */
+.compose-box.init-animation {
+  border-radius: 12px;
+  padding: 20px;
+  animation: floatUp 0.45s ease forwards;
+  transform: translateY(10px);
+  opacity: 0;
+}
+@keyframes floatUp {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.compose-box textarea {
+  border-radius: 10px;
+  transition: border-color 0.25s, background 0.25s;
+}
+.compose-box textarea:focus {
+  border-color: var(--accent);
+  background: rgba(30,144,255,0.10);
+}
+
+.btn-primary {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+/* ========================== */
+/* FIGMATIZED POPUP MENU      */
+/* ========================== */
+
+.post-menu {
+  position: fixed;
+  z-index: 9999;
+
+  background: rgba(0, 30, 70, 0.92);
+  backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+
+  padding: 6px 0;
+  width: 155px;
+
+  display: flex;
+  flex-direction: column;
+
+  opacity: 0;
+  transform: translateY(-4px);
+  animation: menuPop 0.18s ease forwards;
+}
+@keyframes menuPop {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.post-menu .menu-item {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+
+  border: none;
+  background: transparent;
+
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  transition: 0.2s ease;
+}
+
+.post-menu .menu-item:hover {
+  background: rgba(30,144,255,0.12);
+}
+
+/* Icons fully CSS-injected (NO duplicates) */
+.post-menu .edit::before {
+  content: "✏️";
+  opacity: 0.85;
+}
+.post-menu .delete::before {
+  content: "🗑️";
+  opacity: 0.85;
+}
+
+/* Posts - only animate new posts after initial load */
+.post {
+  border-radius: 12px;
+  padding: 18px;
+}
+.post.new-post {
+  animation: postAppear 0.4s ease;
+}
+@keyframes postAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.post .menu-btn {
+  transition: 0.25s ease;
+}
+.post .menu-btn:hover {
+  transform: scale(1.15);
+}
+
+/* ========================== */
+/* FIGMATIZED EDIT MODAL      */
+/* ========================== */
+
+.modal-content {
+  background: rgba(0, 25, 60, 0.92);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 26px;
+
+  border: 1px solid rgba(255,255,255,0.06);
+
+  transform: scale(0.92);
+  opacity: 0;
+  animation: modalPop 0.35s ease forwards;
+}
+
+@keyframes modalPop {
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-title {
+  margin-bottom: 6px;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.modal-author {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 14px;
+}
+
+.modal-text {
+  width: 100%;
+  height: 140px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 12px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  resize: none;
+  transition: 0.25s ease;
+}
+.modal-text:focus {
+  border-color: var(--accent);
+  background: rgba(30,144,255,0.08);
+}
+
+.modal-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions button {
+  border-radius: 8px;
+  transition: 0.25s ease;
+}
+.modal-actions button:hover {
+  transform: translateY(-2px);
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <button class="sidebar-toggle">☰</button>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <a href="feed.html" class="active">Feed</a>
+        <a href="dm.html">Messages</a>
+        <a href="groups.html">Groups</a>
+        <a href="profile.html">Profile</a>
+        <a href="#" onclick="logout()">Logout</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="feed-container">
+
+        <!-- COMPOSE -->
+        <div class="compose-box">
+          <textarea id="postText" placeholder="what's on your mind?" maxlength="1000"></textarea>
+          <div class="compose-actions">
+            <button id="postBtn" class="btn-primary">Post</button>
+          </div>
+        </div>
+
+        <!-- POSTS -->
+        <div id="feedPosts" class="posts-container"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit/Delete Modal -->
+  <div id="postModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-content">
+      <button id="modalClose" class="modal-close">✖</button>
+      <h2 class="modal-title">Edit Post</h2>
+
+      <div class="modal-author" id="modalAuthor"></div>
+
+      <textarea id="modalText" class="modal-text" maxlength="1000"></textarea>
+
+      <div class="modal-actions">
+        <button id="modalSave" class="btn-primary">Save</button>
+        <button id="modalDelete" class="btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-dot menu template -->
+<template id="menuTemplate">
+  <div class="post-menu">
+    <button class="menu-item edit"></button>
+    <button class="menu-item delete"></button>
+  </div>
+</template>
+
+  <script src="js/firebase-api.js"></script>
+  <script>
+    // Add this script before loading feed.js to set up the animation flag
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add animation classes for initial load
+      document.querySelector('.sidebar').classList.add('init-animation');
+      document.querySelector('.content').classList.add('init-animation');
+      document.querySelector('.compose-box').classList.add('init-animation');
+      
+      // Set a flag to track if animations have played
+      window.animationsPlayed = false;
+      
+      // After animations complete, set the flag
+      setTimeout(function() {
+        window.animationsPlayed = true;
+      }, 1000); // Adjust timing based on your longest animation
+    });
+  </script>
+  <script src="js/feed.js"></script>
+</body>
+</html>

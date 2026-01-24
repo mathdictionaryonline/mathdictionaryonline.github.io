@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Messages - parth.social</title>
+    <link rel="stylesheet" href="styles.css">
+
+<style>
+/* ---------- FIGMATIZED DM PAGE ---------- */
+
+/* Sidebar animation - only on initial load */
+.sidebar.init-animation {
+    transform: translateX(-12px);
+    opacity: 0;
+    animation: slideInSidebar 0.45s ease forwards;
+}
+@keyframes slideInSidebar {
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Main fade - only on initial load */
+.content.init-animation {
+    opacity: 0;
+    animation: fadeInMain 0.55s ease forwards 0.1s;
+}
+@keyframes fadeInMain {
+    to { opacity: 1; }
+}
+
+/* DM layout - only on initial load */
+.dm-container.init-animation {
+    animation: fadeUp 0.45s ease forwards;
+    transform: translateY(10px);
+    opacity: 0;
+}
+@keyframes fadeUp {
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* New message animation - for messages sent after initial load */
+.message.new-message {
+    animation: messageAppear 0.3s ease forwards;
+}
+@keyframes messageAppear {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sidebar list */
+.conversation-item {
+    border-radius: 8px;
+    transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.2s ease;
+}
+.conversation-item:hover {
+    transform: translateX(4px);
+}
+
+/* Active highlight */
+.conversation-item.active {
+    background-color: rgba(30,144,255,0.12);
+    border-left-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Chat header */
+.thread-header {
+    background: rgba(0,0,0,0.25);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Messages container */
+.messages-container {
+    padding: 18px;
+    gap: 12px;
+}
+
+/* Message bubbles */
+.message {
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: 0.2s ease;
+}
+.message.sent {
+    background-color: var(--accent);
+    color: var(--bg-primary);
+}
+.message.received {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+.message:hover {
+    transform: translateY(-2px);
+}
+
+/* Typing area */
+.message-input input {
+    border-radius: 8px;
+    transition: border-color 0.25s, background 0.25s;
+}
+.message-input input:focus {
+    border-color: var(--accent);
+    background: rgba(30,144,255,0.10);
+}
+
+/* Send button */
+.btn-primary {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: 0.25s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+</style>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <button class="sidebar-toggle">☰</button>
+            <nav class="sidebar-nav" id="sidebarNav"></nav>
+        </aside>
+        
+        <main class="content">
+            <div class="dm-container">
+
+                <div class="dm-sidebar">
+                    <h2>Messages</h2>
+
+                    <select id="userSelect" class="user-select">
+                        <option value="">Select a user...</option>
+                    </select>
+
+                    <div id="conversationList" class="conversation-list"></div>
+                </div>
+
+                <div class="dm-thread">
+                    <div id="threadHeader" class="thread-header"></div>
+                    <div id="messages" class="messages-container"></div>
+
+                    <div class="message-input">
+                        <input type="text" id="messageText" placeholder="Type a message..." maxlength="500">
+                        <button id="sendBtn" class="btn-primary">Send</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/sha256.js"></script>
+    <script src="js/firebase-api.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script>
+        // Add this script to handle initial animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add animation classes for initial load
+            document.querySelector('.sidebar').classList.add('init-animation');
+            document.querySelector('.content').classList.add('init-animation');
+            document.querySelector('.dm-container').classList.add('init-animation');
+            
+            // Set a flag to track if animations have played
+            window.animationsPlayed = false;
+            
+            // After animations complete, set the flag
+            setTimeout(function() {
+                window.animationsPlayed = true;
+            }, 1000); // Adjust timing based on your longest animation
+        });
+    </script>
+    <script src="js/dm.js"></script>
+</body>
+</html>
