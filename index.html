@@ -226,7 +226,7 @@ search.addEventListener("keydown", e => {
     if (e.key === "Enter" && search.value.trim() === "jan28") {
         sessionStorage.setItem("jan28-unlocked", "true");
         dict.style.display = "none";
-        auth.style.display = "block";
+        auth.style.display = "flex";
         macAuthGuard();
     }
 });
