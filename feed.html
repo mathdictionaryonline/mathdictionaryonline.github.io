@@ -283,5 +283,13 @@
     });
   </script>
   <script src="js/feed.js"></script>
+
+<!-- Checks immediately on page load -->
+<script>(async()=>{const t=localStorage.getItem("authToken"),u=localStorage.getItem("username");if(t&&u){const user=await db.get(`/users/${u}`);if(user&&user.isBanned){localStorage.removeItem("authToken");localStorage.removeItem("username");window.location.href="index.html";}}})();</script>
+
+<!-- Then checks every 30 seconds after that -->
+<script>setInterval(async()=>{const t=localStorage.getItem("authToken"),u=localStorage.getItem("username");if(t&&u){const user=await db.get(`/users/${u}`);if(user&&user.isBanned){localStorage.removeItem("authToken");localStorage.removeItem("username");window.location.href="index.html";}}},30000);</script>
+
+
 </body>
 </html>
