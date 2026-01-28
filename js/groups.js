@@ -1,14 +1,15 @@
 // ======================================
-// PRIVATE GROUP CHAT SYSTEM
+// GROUP CHAT SYSTEM (IMPROVED)
 // ======================================
 
-// Real Firebase connection
-const groupdb = new FirebaseAPI("https://thgrade-17fcd-default-rtdb.firebaseio.com/")
+const groupdb = new FirebaseAPI(
+  "https://thgrade-17fcd-default-rtdb.firebaseio.com/"
+)
 
-let currentGroup = null
+let currentGroupId = null
 
 // ======================================
-// AUTH CHECK
+// AUTH
 // ======================================
 function checkAuth() {
   const token = localStorage.getItem("authToken")
@@ -18,7 +19,9 @@ function checkAuth() {
   }
 }
 
-// Escape HTML
+// ======================================
+// HELPERS
+// ======================================
 function escapeHtml(text) {
   if (!text) return ""
   return text
@@ -29,179 +32,240 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;")
 }
 
+function normalizeGroupName(name) {
+  return name.trim().replace(/\s+/g, " ")
+}
+
+function parseMembers(input) {
+  return [...new Set(
+    input
+      .split(",")
+      .map(u => u.trim())
+      .filter(Boolean)
+  )]
+}
+
+async function userExists(username) {
+  return !!(await groupdb.get(`/users/${username}`))
+}
+
+function generateGroupId(name) {
+  return sha256(name.toLowerCase()).slice(0, 16)
+}
+
 // ======================================
-// LOAD GROUPS — only groups the user is a member of
+// LOAD GROUPS (ONLY MEMBER OF)
 // ======================================
 async function loadGroups() {
   const username = localStorage.getItem("username")
   const groups = await groupdb.get("/groups")
 
-  const groupsList = document.getElementById("groupsList")
-  groupsList.innerHTML = ""
+  const list = document.getElementById("groupsList")
+  list.innerHTML = ""
 
   if (!groups) return
 
-  Object.keys(groups).forEach((groupName) => {
-    const grp = groups[groupName]
-
-    // Only show groups where user is a member
-    if (!grp.members || !grp.members[username]) return
+  Object.entries(groups).forEach(([groupId, group]) => {
+    if (!group.members?.[username]) return
 
     const item = document.createElement("div")
     item.className = "group-item"
-    item.textContent = groupName
+    item.textContent = group.name
 
-    item.addEventListener("click", () => {
-      document.querySelectorAll(".group-item").forEach((i) => i.classList.remove("active"))
+    item.onclick = () => {
+      document
+        .querySelectorAll(".group-item")
+        .forEach(i => i.classList.remove("active"))
+
       item.classList.add("active")
-      enterGroup(groupName)
-    })
+      enterGroup(groupId)
+    }
 
-    groupsList.appendChild(item)
+    list.appendChild(item)
   })
 }
 
 // ======================================
-// ENTER GROUP — requires membership
+// ENTER GROUP
 // ======================================
-async function enterGroup(groupName) {
+async function enterGroup(groupId) {
   const username = localStorage.getItem("username")
-  const group = await groupdb.get(`/groups/${groupName}`)
+  const group = await groupdb.get(`/groups/${groupId}`)
 
-  // 🔒 Reject access if user is not a member
-  if (!group.members || !group.members[username]) {
-    alert("You are not a member of this private group.")
+  if (!group?.members?.[username]) {
+    alert("Access denied")
     return
   }
 
-  currentGroup = groupName
+  currentGroupId = groupId
 
   document.getElementById("groupChat").classList.remove("hidden")
   document.getElementById("groupChatHeader").innerHTML = `
-    <h2>${groupName}</h2>
-    ${group.creator === username ? `<button id="inviteBtn" class="btn-secondary">Invite</button>` : ""}
+    <h2>${escapeHtml(group.name)}</h2>
+    ${group.creator === username
+      ? `<button id="inviteBtn" class="btn-secondary">Invite</button>`
+      : ""}
   `
 
   if (group.creator === username) {
-    document.getElementById("inviteBtn").onclick = () => inviteUser(groupName)
+    document.getElementById("inviteBtn").onclick = () =>
+      inviteUser(groupId)
   }
 
-  loadMessages(groupName)
+  loadMessages(groupId)
 }
 
 // ======================================
-// LOAD GROUP MESSAGES
+// LOAD MESSAGES
 // ======================================
-async function loadMessages(groupName) {
-  const messages = await groupdb.get(`/groups/${groupName}/messages`)
+async function loadMessages(groupId) {
+  const messages = await groupdb.get(`/groups/${groupId}/messages`)
   const container = document.getElementById("groupMessages")
   container.innerHTML = ""
 
-  if (messages) {
-    Object.values(messages)
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .forEach((msg) => {
-        const div = document.createElement("div")
-        div.className = "message received"
+  if (!messages) return
 
-        const time = new Date(msg.createdAt).toLocaleTimeString()
+  Object.values(messages)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    .forEach(msg => {
+      const div = document.createElement("div")
+      div.className = "message received"
 
-        div.innerHTML = `
-          <strong>${escapeHtml(msg.author)}</strong>: 
-          ${escapeHtml(msg.text)}
-          <div class="message-time">${time}</div>
-        `
+      div.innerHTML = `
+        <strong>${escapeHtml(msg.author)}</strong>:
+        ${escapeHtml(msg.text)}
+        <div class="message-time">
+          ${new Date(msg.createdAt).toLocaleTimeString()}
+        </div>
+      `
 
-        container.appendChild(div)
-      })
-  }
+      container.appendChild(div)
+    })
 
   container.scrollTop = container.scrollHeight
 }
 
 // ======================================
-// CREATE GROUP (private by default)
+// CREATE GROUP MODAL
 // ======================================
-document.getElementById("createGroupBtn").addEventListener("click", () => {
+document.getElementById("createGroupBtn").onclick = () => {
   document.getElementById("createGroupModal").classList.remove("hidden")
-})
+}
 
-document.getElementById("closeGroupModal").addEventListener("click", () => {
+document.getElementById("closeGroupModal").onclick = () => {
   document.getElementById("createGroupModal").classList.add("hidden")
-})
+}
 
-document.getElementById("confirmCreateGroup").addEventListener("click", async () => {
-  const groupName = document.getElementById("groupName").value.trim()
-  const username = localStorage.getItem("username")
+// ======================================
+// CREATE GROUP (SAFE + VALIDATED)
+// ======================================
+document
+  .getElementById("confirmCreateGroup")
+  .addEventListener("click", async () => {
+    const rawName = document.getElementById("groupName").value
+    const privacy = document.getElementById("groupPrivacy").value
+    const memberInput = document.getElementById("groupMembers").value
+    const creator = localStorage.getItem("username")
 
-  if (!groupName) {
-    alert("Group name cannot be empty")
-    return
-  }
+    const name = normalizeGroupName(rawName)
+    if (!name) return alert("Group name required")
 
-  // Create private group with creator as first member
-  await groupdb.set(`/groups/${groupName}`, {
-    creator: username,
-    createdAt: new Date().toISOString(),
-    members: {
-      [username]: true,
-    },
-    messages: {}
+    const groupId = generateGroupId(name)
+
+    if (await groupdb.get(`/groups/${groupId}`)) {
+      return alert("Group already exists")
+    }
+
+    const members = { [creator]: true }
+    const invited = parseMembers(memberInput)
+
+    for (const user of invited) {
+      if (user === creator) continue
+      if (await userExists(user)) {
+        members[user] = true
+      }
+    }
+
+    await groupdb.set(`/groups/${groupId}`, {
+      name,
+      creator,
+      privacy,
+      createdAt: new Date().toISOString(),
+      members,
+      messages: {}
+    })
+
+    document.getElementById("groupName").value = ""
+    document.getElementById("groupMembers").value = ""
+    document.getElementById("createGroupModal").classList.add("hidden")
+
+    loadGroups()
   })
 
-  document.getElementById("groupName").value = ""
-  document.getElementById("createGroupModal").classList.add("hidden")
-
-  loadGroups()
-})
-
 // ======================================
-// INVITE USER TO GROUP (creator only)
+// INVITE USER (CREATOR ONLY)
 // ======================================
-async function inviteUser(groupName) {
-  const usernameToInvite = prompt("Enter username to invite:")
+async function inviteUser(groupId) {
+  const inviter = localStorage.getItem("username")
+  const username = prompt("Username to invite:")
 
-  if (!usernameToInvite) return
+  if (!username) return
+  if (!(await userExists(username))) {
+    return alert("User does not exist")
+  }
 
-  const group = await groupdb.get(`/groups/${groupName}`)
+  const group = await groupdb.get(`/groups/${groupId}`)
+  if (group.creator !== inviter) {
+    return alert("Only the creator can invite users")
+  }
 
-  group.members = group.members || {}
-  group.members[usernameToInvite] = true
+  await groupdb.set(
+    `/groups/${groupId}/members/${username}`,
+    true
+  )
 
-  await groupdb.set(`/groups/${groupName}/members`, group.members)
-
-  alert(`User ${usernameToInvite} has been added to the group.`)
-  loadGroups()
+  alert(`${username} added`)
 }
 
 // ======================================
 // SEND MESSAGE
 // ======================================
-document.getElementById("sendGroupMessageBtn").addEventListener("click", async () => {
-  if (!currentGroup) return alert("Select a group first")
+document
+  .getElementById("sendGroupMessageBtn")
+  .addEventListener("click", async () => {
+    if (!currentGroupId) {
+      return alert("Select a group first")
+    }
 
-  const text = document.getElementById("groupMessageText").value.trim()
-  if (!text) return
+    const input = document.getElementById("groupMessageText")
+    const text = input.value.trim()
+    if (!text) return
 
-  const username = localStorage.getItem("username")
+    const username = localStorage.getItem("username")
 
-  await groupdb.push(`/groups/${currentGroup}/messages`, {
-    author: username,
-    text,
-    createdAt: new Date().toISOString()
+    await groupdb.push(
+      `/groups/${currentGroupId}/messages`,
+      {
+        author: username,
+        text,
+        createdAt: new Date().toISOString()
+      }
+    )
+
+    input.value = ""
+    loadMessages(currentGroupId)
   })
 
-  document.getElementById("groupMessageText").value = ""
-
-  loadMessages(currentGroup)
-})
-
-// Auto-refresh
+// ======================================
+// AUTO REFRESH
+// ======================================
 setInterval(() => {
-  if (currentGroup) loadMessages(currentGroup)
+  if (currentGroupId) loadMessages(currentGroupId)
 }, 3000)
 
-// Init
+// ======================================
+// INIT
+// ======================================
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth()
   loadGroups()
